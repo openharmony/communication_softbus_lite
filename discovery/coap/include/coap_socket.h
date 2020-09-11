@@ -30,7 +30,7 @@ typedef struct {
 int GetCoapServerSocket(void);
 int GetCoapClientSocket(void);
 int CoapInitSocket(void);
-int CoapCreatUdpClient(const struct sockaddr_in *sockAddr);
+int CoapCreateUdpClient(const struct sockaddr_in *sockAddr);
 int CoapCreateUdpServer(const struct sockaddr_in *sockAddr);
 int CoapSocketRecv(int socketFd, uint8_t *buffer, size_t length);
 int CoapSocketSend(const SocketInfo *socket, const uint8_t *buffer, size_t length);
