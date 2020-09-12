@@ -82,7 +82,7 @@ static int CoapSendRequest(const CoapRequest *coapRequest)
     sockAddr.sin_port = htons(COAP_DEFAULT_PORT);
     sockAddr.sin_family = AF_INET;
 
-    int ret = CoapCreatUdpClient(&sockAddr);
+    int ret = CoapCreateUdpClient(&sockAddr);
     if (ret != NSTACKX_EOK) {
         return NSTACKX_EFAILED;
     }

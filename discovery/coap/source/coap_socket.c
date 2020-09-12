@@ -93,7 +93,7 @@ void CoapDeinitSocket(void)
     return;
 }
 
-int CoapCreatUdpClient(const struct sockaddr_in *sockAddr)
+int CoapCreateUdpClient(const struct sockaddr_in *sockAddr)
 {
     if (sockAddr == NULL) {
         return NSTACKX_EFAILED;
