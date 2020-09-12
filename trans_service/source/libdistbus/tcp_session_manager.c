@@ -466,12 +466,11 @@ static bool ResponseToClient(TcpSession *session)
     int dataLen = TcpSendData(session->fd, (char*)buf, bufLen, 0);
     free(msg);
     cJSON_Delete(jsonObj);
+    free(buf);
     if (dataLen <= 0) {
-        free(buf);
         SOFTBUS_PRINT("[TRANS] ResponseToClient TcpSendData fail\n");
         return false;
     }
-    free(buf);
     return true;
 }
 
