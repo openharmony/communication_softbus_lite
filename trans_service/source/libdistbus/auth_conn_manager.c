@@ -60,7 +60,7 @@ static int InitListenFd(const char *ip, int port)
         return -DBE_BAD_PARAM;
     }
 
-    if (strncmp(ip, "0.0.0.0", strlen(ip) + 1) == 0) {
+    if (strncmp(ip, "0.0.0.0", strlen(ip)) == 0) {
         return -DBE_BAD_PARAM;
     }
 
