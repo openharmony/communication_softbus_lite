@@ -20,9 +20,7 @@
 #include "discovery_error.h"
 #include "os_adapter.h"
 #include "securec.h"
-#ifdef __cplusplus
-extern "C" {
-#endif
+
 
 typedef struct {
     char package[MAX_PACKAGE_NAME];
