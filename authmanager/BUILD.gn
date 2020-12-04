@@ -12,40 +12,39 @@
 # limitations under the License.
 
 import("//build/lite/config/component/lite_component.gni")
-if (ohos_kernel_type == "liteos_riscv" || ohos_kernel_type == "liteos_m") {
-    config("authmanager_config") {
-        defines = ["SOFTBUS_DEBUG", "_SCANTY_MEMORY_"]
-
-        include_dirs = [
-            "include",
-            "//foundation/communication/services/softbus_lite/discovery/discovery_service/include",
-            "//foundation/communication/services/softbus_lite/os_adapter/include",
-            "//base/security/interfaces/innerkits/hichainsdk_lite",
-            "//foundation/communication/services/softbus_lite/trans_service/include/utils",
-            "//foundation/communication/services/softbus_lite/trans_service/include/libdistbus",
-            "//foundation/communication/interfaces/kits/softbus_lite/transport",
-            "//third_party/cJSON",
-            "$ohos_third_party_dir/mbedtls/include",
-        ]
-    }
-
-    authmanager_sources = [
-        "source/auth_conn.c",
-        "source/auth_interface.c",
-        "source/msg_get_deviceid.c",
-        "source/wifi_auth_manager.c",
-        "source/bus_manager.c",
+if (ohos_kernel_type == "liteos_m") {
+  config("authmanager_config") {
+    defines = [
+      "SOFTBUS_DEBUG",
+      "_SCANTY_MEMORY_",
     ]
 
-    lite_library("authmanager") {
-        target_type = "static_library"
-        output_name = "authmanager"
-        sources = authmanager_sources
-        public_configs = [ ":authmanager_config" ]
-        public_deps = [
-            "//third_party/cJSON:cjson_shared",
-        ]
-    }
+    include_dirs = [
+      "include",
+      "//foundation/communication/services/softbus_lite/discovery/discovery_service/include",
+      "//foundation/communication/services/softbus_lite/os_adapter/include",
+      "//base/security/interfaces/innerkits/hichainsdk_lite",
+      "//foundation/communication/services/softbus_lite/trans_service/include/utils",
+      "//foundation/communication/services/softbus_lite/trans_service/include/libdistbus",
+      "//foundation/communication/interfaces/kits/softbus_lite/transport",
+      "//third_party/cJSON",
+      "$ohos_third_party_dir/mbedtls/include",
+    ]
+  }
 
+  authmanager_sources = [
+    "source/auth_conn.c",
+    "source/auth_interface.c",
+    "source/bus_manager.c",
+    "source/msg_get_deviceid.c",
+    "source/wifi_auth_manager.c",
+  ]
+
+  lite_library("authmanager") {
+    target_type = "static_library"
+    output_name = "authmanager"
+    sources = authmanager_sources
+    public_configs = [ ":authmanager_config" ]
+    public_deps = [ "//third_party/cJSON:cjson_shared" ]
+  }
 }
-
