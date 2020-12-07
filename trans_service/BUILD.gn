@@ -14,7 +14,7 @@
 import("//build/lite/config/component/lite_component.gni")
 import("//build/lite/ndk/ndk.gni")
 
-if (ohos_kernel_type == "liteos_riscv" || ohos_kernel_type == "liteos_m") {
+if (ohos_kernel_type == "liteos_m") {
   config("trans_service_config") {
     include_dirs = [
       "include/libdistbus",

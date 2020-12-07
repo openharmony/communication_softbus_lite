@@ -14,48 +14,44 @@
 import("//build/lite/config/component/lite_component.gni")
 import("//build/lite/ndk/ndk.gni")
 
-if (ohos_kernel_type == "liteos_riscv" || ohos_kernel_type == "liteos_m") {
-    config("discovery_config") {
-        defines = ["SOFTBUS_DEBUG"]
-        include_dirs = [
-            "coap/include",
-            "discovery_service/include",
-            "//foundation/communication/interfaces/kits/softbus_lite/discovery",
-            "//foundation/communication/services/softbus_lite/os_adapter/include",
-            "//foundation/communication/services/softbus_lite/authmanager/include",
-            "//foundation/communication/interfaces/kits/wifi_lite/wifiservice",
-            "//third_party/bounds_checking_function/include",
-            "//base/startup/interfaces/kits/syspara_lite",
-            "//base/security/interfaces/innerkits/hichainsdk_lite",
-            "//third_party/cJSON",
-            "$ohos_third_party_dir/lwip_sack/include",
-        ]
-    }
-    discovery_sources = [
-        "coap/source/coap_discover.c",
-        "coap/source/json_payload.c",
-        "coap/source/nstackx_common.c",
-        "coap/source/nstackx_device.c",
-        "coap/source/coap_socket.c",
-        "coap/source/coap_adapter.c",
-        "discovery_service/source/discovery_service.c",
-        "discovery_service/source/coap_service.c",
-        "discovery_service/source/common_info_manager.c",
-]
+if (ohos_kernel_type == "liteos_m") {
+  config("discovery_config") {
+    defines = [ "SOFTBUS_DEBUG" ]
+    include_dirs = [
+      "coap/include",
+      "discovery_service/include",
+      "//foundation/communication/interfaces/kits/softbus_lite/discovery",
+      "//foundation/communication/services/softbus_lite/os_adapter/include",
+      "//foundation/communication/services/softbus_lite/authmanager/include",
+      "//foundation/communication/interfaces/kits/wifi_lite/wifiservice",
+      "//third_party/bounds_checking_function/include",
+      "//base/startup/interfaces/kits/syspara_lite",
+      "//base/security/interfaces/innerkits/hichainsdk_lite",
+      "//third_party/cJSON",
+      "$ohos_third_party_dir/lwip_sack/include",
+    ]
+  }
+  discovery_sources = [
+    "coap/source/coap_adapter.c",
+    "coap/source/coap_discover.c",
+    "coap/source/coap_socket.c",
+    "coap/source/json_payload.c",
+    "coap/source/nstackx_common.c",
+    "coap/source/nstackx_device.c",
+    "discovery_service/source/coap_service.c",
+    "discovery_service/source/common_info_manager.c",
+    "discovery_service/source/discovery_service.c",
+  ]
 
-if (ohos_kernel_type == "liteos_riscv" || ohos_kernel_type == "liteos_m") {
-    discovery_sources += ["../os_adapter/source/L0/os_adapter.c"]
-} else {
-    discovery_sources += ["../os_adapter/source/L1/os_adapter.c"]
-
-}
-    lite_library("discovery") {
-        target_type = "static_library"
-        sources = discovery_sources
-        public_configs = [ ":discovery_config" ]
-        public_deps = [
-            "//third_party/cJSON:cjson_shared",
-        ]
-    }
-
+  if (ohos_kernel_type == "liteos_m") {
+    discovery_sources += [ "../os_adapter/source/L0/os_adapter.c" ]
+  } else {
+    discovery_sources += [ "../os_adapter/source/L1/os_adapter.c" ]
+  }
+  lite_library("discovery") {
+    target_type = "static_library"
+    sources = discovery_sources
+    public_configs = [ ":discovery_config" ]
+    public_deps = [ "//third_party/cJSON:cjson_shared" ]
+  }
 }
