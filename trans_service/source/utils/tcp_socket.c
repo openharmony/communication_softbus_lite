@@ -12,6 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <stdint.h>
 #include "tcp_socket.h"
 
 #include <arpa/inet.h>
