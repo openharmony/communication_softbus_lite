@@ -79,7 +79,9 @@ int CreateMsgQue(const char *queueName,
     newAttr.mq_flags = flags;
     newAttr.mq_maxmsg = len;
     newAttr.mq_msgsize = maxMsgSize;
-    int mqd = mq_open(queueName, O_RDWR | O_CREAT, &newAttr);
+    /* Owner read and write permission - 0600 */
+    mode_t mode = (S_IRUSR | S_IWUSR);
+    int mqd = mq_open(queueName, O_RDWR | O_CREAT, mode, &newAttr);
     if (mqd < 0) {
         return -1;
     }
