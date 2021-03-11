@@ -20,4 +20,4 @@ int InitTcpMgrLock(void);
 int GetTcpMgrLock(void);
 int ReleaseTcpMgrLock(void);
 
-#endif // TRANS_LOCK_H
+#endif // TRANS_SERVICE_UTIL_H

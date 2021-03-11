@@ -12,10 +12,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stdint.h>
 #include "tcp_socket.h"
 
 #include <arpa/inet.h>
+
 #if defined(__LITEOS_M__) || defined(__LITEOS_RISCV__)
 #include <lwip/sockets.h>
 #else
@@ -26,7 +26,6 @@
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <stdbool.h>
-#include <string.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -74,10 +73,8 @@ int OpenTcpServer(const char *ip, uint16_t port)
     errno = 0;
     int rc = inet_pton(AF_INET, ip, &addr.sin_addr);
     if (rc <= 0) {
-        SOFTBUS_PRINT("[TRANS] OpenTcpServer inet_pton fail, rc=%d:%s\n", rc, strerror(errno));
         return -DBE_BAD_IP;
     }
-    SOFTBUS_PRINT("[TRANS] OpenTcpServer inet_pton rc=%d\n", rc);
 
     addr.sin_family = AF_INET;
     addr.sin_port = htons(port);
@@ -85,18 +82,13 @@ int OpenTcpServer(const char *ip, uint16_t port)
     errno = 0;
     int fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd < 0) {
-        SOFTBUS_PRINT("[TRANS] OpenTcpServer socket fail, rc=%d:%s\n", rc, strerror(errno));
         return -DBE_OPEN_SOCKET;
     }
 
-    SOFTBUS_PRINT("[TRANS] OpenTcpServer fd=%d\n", fd);
-
     SetServerOption(fd);
-
     errno = 0;
     rc = bind(fd, (struct sockaddr *)&addr, sizeof(addr));
     if (rc < 0) {
-        SOFTBUS_PRINT("[TRANS] OpenTcpServer bind fail, rc=%d:%s\n", rc, strerror(errno));
         ShutDown(fd);
         return -DBE_BIND_SOCKET;
     }
@@ -111,7 +103,6 @@ int GetSockPort(int fd)
 
     int rc = getsockname(fd, (struct sockaddr *)&addr, &addrLen);
     if (rc != 0) {
-        SOFTBUS_PRINT("[TRANS] GetSockPort getsockname fail, fd=%d, rc=%d,%s", fd, rc, strerror(errno));
         return rc;
     }
     return ntohs(addr.sin_port);
@@ -159,11 +150,9 @@ static int32_t TcpRecvMessages(int fd, char *buf, uint32_t len, int timeout, int
     errno = 0;
     int32_t rc = recv(fd, buf, len, flags);
     if ((rc == -1) && (errno == EAGAIN)) {
-        SOFTBUS_PRINT("[TRANS] TcpRecvMessages recv fail, errno is eagain\n");
         rc = 0;
     } else if (rc <= 0) {
         rc = -1;
-        SOFTBUS_PRINT("[TRANS] TcpRecvMessage recv fail, errno is %s\n", strerror(errno));
     }
     return rc;
 }

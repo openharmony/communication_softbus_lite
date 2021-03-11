@@ -18,7 +18,6 @@
 #include "nstackx_error.h"
 #include "os_adapter.h"
 #include "securec.h"
-typedef void (*TaskHandle)(void *arg);
 SocketInfo g_socket = {0};
 int g_serverFd = -1;
 int g_clientFd = -1;

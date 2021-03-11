@@ -17,7 +17,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #if defined(__LITEOS_M__) || defined(__LITEOS_RISCV__)
-#include "los_sem.h"
+#include <cmsis_os.h>
 #else
 #include "pms_interface.h"
 #include "pms_types.h"
@@ -32,10 +32,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-int SemCreate(unsigned short count, unsigned long *semHandle);
-int SemDelete(const unsigned long *semHandle);
-int SemWait(const unsigned long *semHandle);
-int SemPost(const unsigned long *semHandle);
+
+typedef void *MutexId;
+
+MutexId MutexInit(void);
+void MutexLock(MutexId mutex);
+void MutexUnlock(MutexId mutex);
 void CloseSocket(int *fd);
 int WriteMsgQue(unsigned int queueID,
     const void *bufferAddr,

@@ -13,46 +13,27 @@
  * limitations under the License.
  */
 #include "os_adapter.h"
-
-#include <los_queue.h>
-#include <los_task.h>
-
 #include "lwip/sockets.h"
 
-int SemCreate(unsigned short count, unsigned long *semHandle)
+MutexId MutexInit(void)
 {
-    if (semHandle == NULL) {
-        return -1;
-    }
-    int ret = LOS_SemCreate(count, (unsigned int*)semHandle);
-    if (ret == 0) {
-        return LOS_SemPost((unsigned int)*semHandle);
-    }
-    return ret;
+    return (MutexId)osMutexNew(NULL);
 }
 
-int SemDelete(const unsigned long *semHandle)
+void MutexLock(MutexId mutex)
 {
-    if (semHandle == NULL) {
-        return -1;
+    if (mutex == NULL) {
+        return;
     }
-    return LOS_SemDelete((unsigned int)*semHandle);
+    osMutexAcquire(mutex, osWaitForever);
 }
 
-int SemWait(const unsigned long *semHandle)
+void MutexUnlock(MutexId mutex)
 {
-    if (semHandle == NULL) {
-        return -1;
+    if (mutex == NULL) {
+        return;
     }
-    return LOS_SemPend((unsigned int)*semHandle, LOS_WAIT_FOREVER);
-}
-
-int SemPost(const unsigned long *semHandle)
-{
-    if (semHandle == NULL) {
-        return -1;
-    }
-    return LOS_SemPost((unsigned int)*semHandle);
+    osMutexRelease(mutex);
 }
 
 void CloseSocket(int *fd)
@@ -72,23 +53,34 @@ int WriteMsgQue(unsigned int queueID, const void *bufferAddr, unsigned int buffe
     if (bufferAddr == NULL) {
         return -1;
     }
-    return LOS_QueueWriteCopy(queueID, (void*)bufferAddr, bufferSize, LOS_NO_WAIT);
+    (void)bufferSize;
+    return osMessageQueuePut((osMessageQueueId_t)queueID, (VOID*)bufferAddr, 0, 0);
 }
 
 int CreateMsgQue(const char *queueName,
     unsigned short len, unsigned int *queueID,
     unsigned int flags, unsigned short maxMsgSize)
 {
-    if (queueName == NULL || queueID == NULL) {
+    osMessageQueueId_t id;
+
+    if (queueID == NULL) {
         return -1;
     }
-    int ret = LOS_QueueCreate(queueName, len, queueID, flags, maxMsgSize);
-    return ret;
+
+    (void)queueName;
+    (void)flags;
+
+    id = osMessageQueueNew(len, maxMsgSize, NULL);
+    if (NULL == id) {
+        return -1;
+    }
+    *queueID = (unsigned int)id;
+    return 0;
 }
 
 int DeleteMsgQue(unsigned int queueID)
 {
-    return LOS_QueueDelete(queueID);
+    return osMessageQueueDelete((osMessageQueueId_t)queueID);
 }
 
 int ReadMsgQue(unsigned int queueID,
@@ -97,7 +89,7 @@ int ReadMsgQue(unsigned int queueID,
     if (bufferAddr == NULL || bufferSize == NULL) {
         return -1;
     }
-    return LOS_QueueReadCopy(queueID, bufferAddr, bufferSize, LOS_WAIT_FOREVER);
+    return osMessageQueueGet((osMessageQueueId_t)queueID, bufferAddr, NULL, osWaitForever);
 }
 
 int SoftBusCheckPermission(const char* permissionName)

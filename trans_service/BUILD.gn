@@ -24,9 +24,9 @@ if (ohos_kernel_type == "liteos_m") {
       "../authmanager/include",
       "//kernel/liteos_a/lib/libsec/include",
       "//third_party/cJSON",
-      "//foundation/communication/services/softbus_lite/discovery/discovery_service/include",
-      "//foundation/communication/services/softbus_lite/os_adapter/include",
-      "//foundation/communication/interfaces/kits/softbus_lite/transport",
+      "//foundation/communication/softbus_lite/discovery/discovery_service/include",
+      "//foundation/communication/softbus_lite/os_adapter/include",
+      "//foundation/communication/softbus_lite/interfaces/kits/transport",
       "//third_party/bounds_checking_function/include",
       "$ohos_third_party_dir/lwip_sack/include",
       "$ohos_third_party_dir/mbedtls/include",
@@ -51,6 +51,6 @@ if (ohos_kernel_type == "liteos_m") {
     output_name = "trans_service"
     sources = trans_service_sources
     public_configs = [ ":trans_service_config" ]
-    public_deps = [ "//third_party/cJSON:cjson_shared" ]
+    public_deps = [ "//build/lite/config/component/cJSON:cjson_shared" ]
   }
 }

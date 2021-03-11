@@ -14,8 +14,6 @@
  */
 #include "message.h"
 
-#include <stdio.h>
-
 int GetJsonInt(const cJSON *root, const char *name, int *result)
 {
     if (root == NULL || name == NULL || result == NULL) {

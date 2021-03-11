@@ -21,12 +21,12 @@ if (ohos_kernel_type == "liteos_m") {
 
     include_dirs = [
       "include",
-      "//foundation/communication/services/softbus_lite/discovery/discovery_service/include",
-      "//foundation/communication/services/softbus_lite/os_adapter/include",
-      "//base/security/interfaces/innerkits/hichainsdk_lite",
-      "//foundation/communication/services/softbus_lite/trans_service/include/utils",
-      "//foundation/communication/services/softbus_lite/trans_service/include/libdistbus",
-      "//foundation/communication/interfaces/kits/softbus_lite/transport",
+      "//foundation/communication/softbus_lite/discovery/discovery_service/include",
+      "//foundation/communication/softbus_lite/os_adapter/include",
+      "//foundation/communication/softbus_lite/trans_service/include/utils",
+      "//foundation/communication/softbus_lite/trans_service/include/libdistbus",
+      "//foundation/communication/softbus_lite/interfaces/kits/transport",
+      "//base/security/deviceauth/interfaces/innerkits/deviceauth_lite",
       "//third_party/cJSON",
       "$ohos_third_party_dir/mbedtls/include",
     ]
@@ -45,6 +45,6 @@ if (ohos_kernel_type == "liteos_m") {
     output_name = "authmanager"
     sources = authmanager_sources
     public_configs = [ ":authmanager_config" ]
-    public_deps = [ "//third_party/cJSON:cjson_shared" ]
+    public_deps = [ "//build/lite/config/component/cJSON:cjson_shared" ]
   }
 }

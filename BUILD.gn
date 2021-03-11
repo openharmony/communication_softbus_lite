@@ -16,25 +16,29 @@ import("//build/lite/ndk/ndk.gni")
 if (ohos_kernel_type == "liteos_a" || ohos_kernel_type == "linux") {
   config("softbus_lite_config") {
     include_dirs = [
-      "//foundation/communication/services/softbus_lite/discovery/coap/include",
-      "//foundation/communication/services/softbus_lite/os_adapter/include",
-      "//foundation/communication/interfaces/kits/softbus_lite/discovery",
+      "//foundation/communication/softbus_lite/discovery/coap/include",
+      "//foundation/communication/softbus_lite/os_adapter/include",
+      "//foundation/communication/softbus_lite/interfaces/kits/discovery",
       "//third_party/cJSON",
       "//third_party/bounds_checking_function/include",
-      "//foundation/communication/services/softbus_lite/discovery/discovery_service/include",
-      "//foundation/communication/services/softbus_lite/authmanager/include",
-      "//base/startup/interfaces/kits/syspara_lite",
-      "//foundation/communication/services/softbus_lite/trans_service/include/libdistbus",
-      "//foundation/communication/services/softbus_lite/trans_service/include/utils",
-      "//foundation/communication/services/softbus_lite/trans_service/source/libdistbus",
-      "//foundation/communication/services/softbus_lite/trans_service/source/utils",
+      "//foundation/communication/softbus_lite/discovery/discovery_service/include",
+      "//foundation/communication/softbus_lite/authmanager/include",
+      "//base/startup/syspara_lite/interfaces/kits",
+      "//foundation/communication/softbus_lite/trans_service/include/libdistbus",
+      "//foundation/communication/softbus_lite/trans_service/include/utils",
+      "//foundation/communication/softbus_lite/trans_service/source/libdistbus",
+      "//foundation/communication/softbus_lite/trans_service/source/utils",
       "//kernel/liteos_a/lib/libsec/include",
-      "//foundation/communication/interfaces/kits/softbus_lite/transport",
-      "//base/security/interfaces/innerkits/hichainsdk_lite",
+      "//foundation/communication/softbus_lite/interfaces/kits/transport",
+      "//base/security/deviceauth/interfaces/innerkits/deviceauth_lite",
       "//third_party/mbedtls/include",
-      "//base/security/frameworks/hichainsdk_lite/source/huks_adapter/",
-      "//base/security/interfaces/kits/iam_lite",
+      "//base/security/deviceauth/frameworks/deviceauth_lite/source/huks_adapter/",
+      "//base/security/permission/interfaces/kits/permission_lite",
     ]
+
+    if (ohos_kernel_type == "liteos_a") {
+      include_dirs += [ "//third_party/wpa_supplicant/wpa_supplicant-2.9/src/" ]
+    }
 
     defines = [
       "_GNU_SOURCE",
@@ -42,41 +46,32 @@ if (ohos_kernel_type == "liteos_a" || ohos_kernel_type == "linux") {
     ]
 
     defines += [ "SOFTBUS_DEBUG" ]
-    include_dirs += [
-      "//kernel/liteos_a/kernel/include",
-      "//kernel/liteos_a/arch/arm/arm/include",
-      "//kernel/liteos_a/kernel/include",
-      "//kernel/liteos_a/kernel/common",
-      "//kernel/liteos_a/platform/board/hi3516dv300/include",
-      "//kernel/liteos_a/platform/include",
-      "//kernel/liteos_a/kernel/base/include",
-      "//kernel/liteos_a/kernel/include",
-    ]
+    include_dirs += []
   }
 
   softbus_lite_sources = [
-    "//foundation/communication/services/softbus_lite/authmanager/source/auth_conn.c",
-    "//foundation/communication/services/softbus_lite/authmanager/source/auth_interface.c",
-    "//foundation/communication/services/softbus_lite/authmanager/source/bus_manager.c",
-    "//foundation/communication/services/softbus_lite/authmanager/source/msg_get_deviceid.c",
-    "//foundation/communication/services/softbus_lite/authmanager/source/wifi_auth_manager.c",
-    "//foundation/communication/services/softbus_lite/discovery/coap/source/coap_adapter.c",
-    "//foundation/communication/services/softbus_lite/discovery/coap/source/coap_discover.c",
-    "//foundation/communication/services/softbus_lite/discovery/coap/source/coap_socket.c",
-    "//foundation/communication/services/softbus_lite/discovery/coap/source/json_payload.c",
-    "//foundation/communication/services/softbus_lite/discovery/coap/source/nstackx_common.c",
-    "//foundation/communication/services/softbus_lite/discovery/coap/source/nstackx_device.c",
-    "//foundation/communication/services/softbus_lite/discovery/discovery_service/source/coap_service.c",
-    "//foundation/communication/services/softbus_lite/discovery/discovery_service/source/common_info_manager.c",
-    "//foundation/communication/services/softbus_lite/discovery/discovery_service/source/discovery_service.c",
-    "//foundation/communication/services/softbus_lite/os_adapter/source/L1/os_adapter.c",
-    "//foundation/communication/services/softbus_lite/trans_service/source/libdistbus/auth_conn_manager.c",
-    "//foundation/communication/services/softbus_lite/trans_service/source/libdistbus/tcp_session.c",
-    "//foundation/communication/services/softbus_lite/trans_service/source/libdistbus/tcp_session_manager.c",
-    "//foundation/communication/services/softbus_lite/trans_service/source/libdistbus/trans_lock.c",
-    "//foundation/communication/services/softbus_lite/trans_service/source/utils/aes_gcm.c",
-    "//foundation/communication/services/softbus_lite/trans_service/source/utils/message.c",
-    "//foundation/communication/services/softbus_lite/trans_service/source/utils/tcp_socket.c",
+    "//foundation/communication/softbus_lite/authmanager/source/auth_conn.c",
+    "//foundation/communication/softbus_lite/authmanager/source/auth_interface.c",
+    "//foundation/communication/softbus_lite/authmanager/source/bus_manager.c",
+    "//foundation/communication/softbus_lite/authmanager/source/msg_get_deviceid.c",
+    "//foundation/communication/softbus_lite/authmanager/source/wifi_auth_manager.c",
+    "//foundation/communication/softbus_lite/discovery/coap/source/coap_adapter.c",
+    "//foundation/communication/softbus_lite/discovery/coap/source/coap_discover.c",
+    "//foundation/communication/softbus_lite/discovery/coap/source/coap_socket.c",
+    "//foundation/communication/softbus_lite/discovery/coap/source/json_payload.c",
+    "//foundation/communication/softbus_lite/discovery/coap/source/nstackx_common.c",
+    "//foundation/communication/softbus_lite/discovery/coap/source/nstackx_device.c",
+    "//foundation/communication/softbus_lite/discovery/discovery_service/source/coap_service.c",
+    "//foundation/communication/softbus_lite/discovery/discovery_service/source/common_info_manager.c",
+    "//foundation/communication/softbus_lite/discovery/discovery_service/source/discovery_service.c",
+    "//foundation/communication/softbus_lite/os_adapter/source/L1/os_adapter.c",
+    "//foundation/communication/softbus_lite/trans_service/source/libdistbus/auth_conn_manager.c",
+    "//foundation/communication/softbus_lite/trans_service/source/libdistbus/tcp_session.c",
+    "//foundation/communication/softbus_lite/trans_service/source/libdistbus/tcp_session_manager.c",
+    "//foundation/communication/softbus_lite/trans_service/source/libdistbus/trans_lock.c",
+    "//foundation/communication/softbus_lite/trans_service/source/utils/aes_gcm.c",
+    "//foundation/communication/softbus_lite/trans_service/source/utils/message.c",
+    "//foundation/communication/softbus_lite/trans_service/source/utils/tcp_socket.c",
   ]
 
   cflags = [ "-Wall" ]
@@ -86,34 +81,46 @@ if (ohos_kernel_type == "liteos_a" || ohos_kernel_type == "linux") {
     sources = softbus_lite_sources
     public_configs = [ ":softbus_lite_config" ]
     public_deps = [
-      "//base/security/frameworks/hichainsdk_lite/source:hichainsdk",
-      "//base/security/services/iam_lite/pms_client:pms_client",
+      "//base/security/deviceauth/frameworks/deviceauth_lite/source:hichainsdk",
+      "//base/security/permission/services/permission_lite/pms_client:pms_client",
+      "//build/lite/config/component/cJSON:cjson_shared",
       "//third_party/bounds_checking_function:libsec_shared",
-      "//third_party/cJSON:cjson_shared",
     ]
+
+    if (ohos_kernel_type == "liteos_a") {
+      public_deps +=
+          [ "//third_party/wpa_supplicant/wpa_supplicant-2.9:wpa_supplicant" ]
+    }
+
+    out_dir = rebase_path(root_build_dir)
+    ldflags = [ "-L${out_dir}" ]
+
+    if (ohos_kernel_type == "liteos_a") {
+      ldflags += [ "-lwpa_client" ]
+    }
   }
 
   ndk_lib("softbus_ndk") {
     lib_extension = ".so"
     deps = [ ":softbus_lite" ]
     head_files = [
-      "//foundation/communication/interfaces/kits/softbus_lite/transport",
-      "//foundation/communication/interfaces/kits/softbus_lite/discovery",
+      "//foundation/communication/softbus_lite/interfaces/kits/transport",
+      "//foundation/communication/softbus_lite/interfaces/kits/discovery",
     ]
   }
 } else {
   ndk_lib("discovery_ndk") {
-    deps = [
-      "//foundation/communication/services/softbus_lite/discovery:discovery",
-    ]
+    deps = [ "//foundation/communication/softbus_lite/discovery:discovery" ]
     head_files =
-        [ "//foundation/communication/interfaces/kits/softbus_lite/discovery" ]
+        [ "//foundation/communication/softbus_lite/interfaces/kits/discovery" ]
   }
 
   ndk_lib("trans_service_ndk") {
-    deps = [ "//foundation/communication/services/softbus_lite/trans_service:trans_service" ]
+    deps = [
+      "//foundation/communication/softbus_lite/trans_service:trans_service",
+    ]
     head_files =
-        [ "//foundation/communication/interfaces/kits/softbus_lite/transport" ]
+        [ "//foundation/communication/softbus_lite/interfaces/kits/transport" ]
   }
 }
 

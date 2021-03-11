@@ -13,47 +13,35 @@
  * limitations under the License.
  */
 #include "os_adapter.h"
-
+#include <errno.h>
 #include <mqueue.h>
 #include <pthread.h>
 #include <unistd.h>
 
-int SemCreate(unsigned short count, unsigned long *semHandle)
+MutexId MutexInit(void)
 {
-    if (semHandle == NULL) {
-        return -1;
+    pthread_mutex_t *mutex = (pthread_mutex_t *)malloc(sizeof(pthread_mutex_t));
+    if (mutex == NULL) {
+        return NULL;
     }
-
-    (void)count;
-    int ret = sem_init((sem_t *)semHandle, 1, 0);
-    if (ret == 0) {
-        return sem_post((sem_t *)semHandle);
-    }
-    return ret;
+    (void)pthread_mutex_init(mutex, NULL);
+    return (MutexId)mutex;
 }
 
-int SemDelete(const unsigned long *semHandle)
+void MutexLock(MutexId mutex)
 {
-    if (semHandle == NULL) {
-        return -1;
+    if (mutex == NULL) {
+        return;
     }
-    return sem_destroy((sem_t *)semHandle);
+    pthread_mutex_lock((pthread_mutex_t *)mutex);
 }
 
-int SemWait(const unsigned long *semHandle)
+void MutexUnlock(MutexId mutex)
 {
-    if (semHandle == NULL) {
-        return -1;
+    if (mutex == NULL) {
+        return;
     }
-    return sem_wait((sem_t *)semHandle);
-}
-
-int SemPost(const unsigned long *semHandle)
-{
-    if (semHandle == NULL) {
-        return -1;
-    }
-    return sem_post((sem_t *)semHandle);
+    pthread_mutex_unlock((pthread_mutex_t *)mutex);
 }
 
 void CloseSocket(int *fd)
@@ -79,9 +67,7 @@ int CreateMsgQue(const char *queueName,
     newAttr.mq_flags = flags;
     newAttr.mq_maxmsg = len;
     newAttr.mq_msgsize = maxMsgSize;
-    /* Owner read and write permission - 0600 */
-    mode_t mode = (S_IRUSR | S_IWUSR);
-    int mqd = mq_open(queueName, O_RDWR | O_CREAT, mode, &newAttr);
+    int mqd = mq_open(queueName, O_CREAT | O_RDWR | O_EXCL, S_IRUSR | S_IWUSR, &newAttr);
     if (mqd < 0) {
         return -1;
     }
@@ -96,7 +82,11 @@ int WriteMsgQue(unsigned int queueID,
     if (bufferAddr == NULL) {
         return -1;
     }
-    return mq_send(queueID, bufferAddr, bufferSize, 0);
+    int ret = mq_send(queueID, bufferAddr, bufferSize, 0);
+    if (ret != 0) {
+        return -1;
+    }
+    return 0;
 }
 
 int DeleteMsgQue(unsigned int queueID)
@@ -126,8 +116,8 @@ int SoftBusCheckPermission(const char* permissionName)
         return -1;
     }
 
-    if (CheckPermission(0, permissionName) != GRANTED) {
-        SOFTBUS_PRINT("[SOFTBUS] CheckPermission fail\n");
+    if (CheckSelfPermission(permissionName) != GRANTED) {
+        SOFTBUS_PRINT("[SOFTBUS] CheckSelfPermission fail\n");
         return -1;
     }
     return 0;

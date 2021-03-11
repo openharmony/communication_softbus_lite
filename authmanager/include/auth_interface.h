@@ -18,7 +18,6 @@
 
 #include "auth_conn.h"
 
-#define AUTH_PIN_DEFAULT "softbus"
 #define AUTH_DEFAULT_ID "default"
 #define AUTH_DEFAULT_ID_LEN 7
 #define AUTH_SESSION_KEY_LEN 16

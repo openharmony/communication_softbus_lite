@@ -43,9 +43,10 @@ static int g_isServiceInit = 0;
 PublishModule *g_publishModule = NULL;
 char *g_capabilityData = NULL;
 #define INVALID_SEM_ID 0xffffffff
-unsigned long g_serviceSemId = INVALID_SEM_ID;
 #define SOFTBUS_PERMISSION  "ohos.permission.DISTRIBUTED_DATASYNC"
 static int DoRegistService(int medium);
+static MutexId g_discoveryMutex = NULL;
+
 int GetDeviceType(const char *value)
 {
     if (value == NULL) {
@@ -253,9 +254,7 @@ int InitService(void)
         DeinitService();
         return ret;
     }
-#if defined(__LITEOS_M__) || defined(__LITEOS_RISCV__)
     CoapWriteMsgQueue(UPDATE_IP_EVENT);
-#endif
     ret = CoapRegisterDeviceInfo();
     if (ret != ERROR_SUCCESS) {
         SOFTBUS_PRINT("[DISCOVERY] InitService CoapRegisterDeviceInfo fail\n");
@@ -263,11 +262,6 @@ int InitService(void)
         return ret;
     }
     g_isServiceInit = 1;
-#if defined(__LITEOS_A__) || defined(__LINUX__)
-    if (BusManager(1) != ERROR_SUCCESS) {
-        SOFTBUS_PRINT("[DISCOVERY] InitService BusManager(1) fail\n");
-    }
-#endif
     SOFTBUS_PRINT("[DISCOVERY] InitService ok\n");
     return ERROR_SUCCESS;
 }
@@ -509,34 +503,39 @@ int PublishService(const char *moduleName, const struct PublishInfo *info, const
         PublishCallback(info->publishId, PUBLISH_FAIL_REASON_NOT_SUPPORT_MEDIUM, NULL, cb);
         return ERROR_INVALID;
     }
-    if (g_serviceSemId == INVALID_SEM_ID) {
-        if (SemCreate(0, &g_serviceSemId) != 0) {
-            g_serviceSemId = INVALID_SEM_ID;
+
+    if (g_discoveryMutex == NULL) {
+        g_discoveryMutex = MutexInit();
+        if (g_discoveryMutex == NULL) {
             PublishCallback(info->publishId, PUBLISH_FAIL_REASON_UNKNOWN, NULL, cb);
             return ERROR_FAIL;
         }
     }
-    (void)SemWait(&g_serviceSemId);
+
+    MutexLock(g_discoveryMutex);
     if (InitService() != ERROR_SUCCESS) {
         SOFTBUS_PRINT("[DISCOVERY] PublishService InitService fail\n");
         PublishCallback(info->publishId, PUBLISH_FAIL_REASON_UNKNOWN, NULL, cb);
-        (void)SemPost(&g_serviceSemId);
+        MutexUnlock(g_discoveryMutex);
         return ERROR_FAIL;
     }
+
     PublishModule *findModule = AddPublishModule(moduleName, info);
     if (findModule == NULL) {
         SOFTBUS_PRINT("[DISCOVERY] PublishService AddPublishModule fail\n");
         PublishCallback(info->publishId, PUBLISH_FAIL_REASON_UNKNOWN, NULL, cb);
-        (void)SemPost(&g_serviceSemId);
+        MutexUnlock(g_discoveryMutex);
         return ERROR_FAIL;
     }
+
     int ret = ERROR_SUCCESS;
     if (info->capability == NULL || info->capabilityData == NULL) {
         (void)CoapRegisterDefualtService();
     } else {
         ret = DoRegistService(info->medium);
     }
-    (void)SemPost(&g_serviceSemId);
+    MutexUnlock(g_discoveryMutex);
+
     if (ret != ERROR_SUCCESS) {
         PublishCallback(info->publishId, PUBLISH_FAIL_REASON_UNKNOWN, findModule, cb);
         return ERROR_FAIL;
@@ -553,16 +552,16 @@ int UnPublishService(const char* moduleName, int publishId)
         return ERROR_FAIL;
     }
 
-    if (moduleName == NULL || publishId <= 0 || g_serviceSemId == INVALID_SEM_ID) {
+    if (moduleName == NULL || publishId <= 0 || g_discoveryMutex == NULL) {
         SOFTBUS_PRINT("[DISCOVERY] UnPublishService invliad para\n");
         return ERROR_INVALID;
     }
 
-    (void)SemWait(&g_serviceSemId);
+    MutexLock(g_discoveryMutex);
     PublishModule *findModule = FindExistModule(moduleName, publishId);
     if (findModule == NULL) {
         SOFTBUS_PRINT("[DISCOVERY] UnPublishService get module fail\n");
-        (void)SemPost(&g_serviceSemId);
+        MutexUnlock(g_discoveryMutex);
         return ERROR_NONEXIST;
     }
 
@@ -575,11 +574,11 @@ int UnPublishService(const char* moduleName, int publishId)
     int ret = DoRegistService(medium);
     if (ret != ERROR_SUCCESS) {
         SOFTBUS_PRINT("[DISCOVERY] UnPublishService DoRegistService fail, error =  %d\n", ret);
-        (void)SemPost(&g_serviceSemId);
+        MutexUnlock(g_discoveryMutex);
         return ret;
     }
 
-    (void)SemPost(&g_serviceSemId);
+    MutexUnlock(g_discoveryMutex);
     SOFTBUS_PRINT("[DISCOVERY] UnPublishService ok\n");
     return ret;
 }

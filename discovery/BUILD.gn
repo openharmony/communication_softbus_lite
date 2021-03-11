@@ -20,13 +20,13 @@ if (ohos_kernel_type == "liteos_m") {
     include_dirs = [
       "coap/include",
       "discovery_service/include",
-      "//foundation/communication/interfaces/kits/softbus_lite/discovery",
-      "//foundation/communication/services/softbus_lite/os_adapter/include",
-      "//foundation/communication/services/softbus_lite/authmanager/include",
-      "//foundation/communication/interfaces/kits/wifi_lite/wifiservice",
+      "//foundation/communication/softbus_lite/interfaces/kits/discovery",
+      "//foundation/communication/softbus_lite/os_adapter/include",
+      "//foundation/communication/softbus_lite/authmanager/include",
+      "//foundation/communication/wifi_lite/interfaces/wifiservice",
       "//third_party/bounds_checking_function/include",
-      "//base/startup/interfaces/kits/syspara_lite",
-      "//base/security/interfaces/innerkits/hichainsdk_lite",
+      "//base/startup/syspara_lite/interfaces/kits",
+      "//base/security/deviceauth/interfaces/innerkits/deviceauth_lite",
       "//third_party/cJSON",
       "$ohos_third_party_dir/lwip_sack/include",
     ]
@@ -52,6 +52,6 @@ if (ohos_kernel_type == "liteos_m") {
     target_type = "static_library"
     sources = discovery_sources
     public_configs = [ ":discovery_config" ]
-    public_deps = [ "//third_party/cJSON:cjson_shared" ]
+    public_deps = [ "//build/lite/config/component/cJSON:cjson_shared" ]
   }
 }

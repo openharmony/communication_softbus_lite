@@ -17,7 +17,7 @@
 
 #include <arpa/inet.h>
 #if defined(__LITEOS_M__) || defined(__LITEOS_RISCV__)
-#include <los_task.h>
+#include <cmsis_os.h>
 #else
 #include <pthread.h>
 #include "pms_interface.h"
@@ -158,6 +158,33 @@ static int InitSelectList(const TcpSessionMgr *tsm, fd_set *rfds, fd_set *except
     return maxFd;
 }
 
+static int InitGSessionMgr(void)
+{
+    if (g_sessionMgr != NULL) {
+        return 0;
+    }
+
+    g_sessionMgr = malloc(sizeof(TcpSessionMgr));
+    if (g_sessionMgr == NULL) {
+        return TRANS_FAILED;
+    }
+
+    (void)memset_s(g_sessionMgr, sizeof(TcpSessionMgr), 0, sizeof(TcpSessionMgr));
+
+    g_sessionMgr->listenFd = -1;
+    g_sessionMgr->isSelectLoopRunning = false;
+
+    for (int i = 0; i < MAX_SESSION_SUM_NUM; i++) {
+        g_sessionMgr->sessionMap_[i] = NULL;
+    }
+
+    for (int i = 0; i < MAX_SESSION_SERVER_NUM; i++) {
+        g_sessionMgr->serverListenerMap[i] = NULL;
+    }
+
+    return 0;
+}
+
 static bool RemoveSession(TcpSessionMgr *tsm, int sessionId)
 {
     if (tsm == NULL || sessionId < 0) {
@@ -206,15 +233,17 @@ static void CloseTransSession(int sessionId)
 
 static int RemoveExceptSessionFd(const TcpSessionMgr *tsm, fd_set *exceptfds)
 {
-    if (tsm == NULL || tsm->listenFd == -1 || exceptfds == NULL) {
-        return TRANS_FAILED;
-    }
-
-    if (FD_ISSET(tsm->listenFd, exceptfds)) {
-        return TRANS_FAILED;
-    }
-
     if (GetTcpMgrLock() != 0) {
+        return TRANS_FAILED;
+    }
+
+    if (g_sessionMgr == NULL || g_sessionMgr->listenFd == -1 || exceptfds == NULL) {
+        ReleaseTcpMgrLock();
+        return TRANS_FAILED;
+    }
+
+    if (g_sessionMgr->listenFd >= 0 && FD_ISSET(g_sessionMgr->listenFd, exceptfds)) {
+        ReleaseTcpMgrLock();
         return TRANS_FAILED;
     }
 
@@ -713,7 +742,10 @@ static void SelectSessionLoop(TcpSessionMgr *tsm)
 
 static int CreateSessionServerInner(const char* moduleName, const char* sessionName, struct ISessionListener *listener)
 {
-    if (g_sessionMgr == NULL || listener == NULL || sessionName == NULL || moduleName == NULL) {
+    if (g_sessionMgr == NULL && InitGSessionMgr() != 0) {
+        return TRANS_FAILED;
+    }
+    if (listener == NULL || sessionName == NULL || moduleName == NULL) {
         SOFTBUS_PRINT("[TRANS] CreateSessionServer invalid param\n");
         return TRANS_FAILED;
     }
@@ -795,18 +827,19 @@ int StartSelectLoop(TcpSessionMgr *tsm)
         return 0;
     }
 
-    unsigned int sessionLoopTaskId = 0;
-    TSK_INIT_PARAM_S serverTask;
-    memset_s(&serverTask, sizeof(TSK_INIT_PARAM_S), 0, sizeof(TSK_INIT_PARAM_S));
-    serverTask.pfnTaskEntry = (TSK_ENTRY_FUNC)SelectSessionLoop;
-    serverTask.usTaskPrio = LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO;
-    serverTask.pcName = "trans_session_task";
-    serverTask.uwStackSize = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
-    serverTask.uwResved   = LOS_TASK_STATUS_DETACHED;
-    serverTask.auwArgs[0] = (uintptr_t)tsm;
-    SOFTBUS_PRINT("[TRANS] StartSelectLoop create trans_session_task\n");
-    unsigned int ret = LOS_TaskCreate(&sessionLoopTaskId, &serverTask);
-    if (ret != 0) {
+    osThreadId_t sessionLoopTaskId;
+
+    osThreadAttr_t attr;
+    attr.name = "trans_session_task";
+    attr.attr_bits = 0U;
+    attr.cb_mem = NULL;
+    attr.cb_size = 0U;
+    attr.stack_mem = NULL;
+    attr.stack_size = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
+    attr.priority = osPriorityNormal5; // LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO -> cmsis prio
+
+    sessionLoopTaskId = osThreadNew((osThreadFunc_t)SelectSessionLoop, (void *)tsm, &attr);
+    if (NULL == sessionLoopTaskId) {
         SOFTBUS_PRINT("[TRANS] StartSelectLoop TaskCreate fail\n");
         return TRANS_FAILED;
     }
@@ -837,34 +870,28 @@ ThreadId TcpCreate(Runnable run, void *argv, const ThreadAttr *attr)
 
     ret = pthread_attr_init(&threadAttr);
     if (ret != 0) {
-        return NULL;
+        SOFTBUS_PRINT("[TRANS] TcpCreate pthread attr init fail\n");
     }
     ret = pthread_attr_setstacksize(&threadAttr, (attr->stackSize | MIN_STACK_SIZE));
     if (ret != 0) {
-        return NULL;
+        SOFTBUS_PRINT("[TRANS] TcpCreate pthread attr setstacksize fail\n");
     }
 
     struct sched_param sched = {attr->priority};
 
     ret = pthread_attr_setschedparam(&threadAttr, &sched);
     if (ret != 0) {
-        return NULL;
+        SOFTBUS_PRINT("[TRANS] TcpCreate pthread attr setschedparam fail\n");
     }
     ret = pthread_key_create(&g_localKey, NULL);
     if (ret != 0) {
-        return NULL;
+        SOFTBUS_PRINT("[TRANS] TcpCreate pthread key create fail\n");
     }
 
     pthread_t threadId = 0;
     ret = pthread_create(&threadId, &threadAttr, run, argv);
     if (ret != 0) {
         return NULL;
-    }
-    if (attr->name != NULL) {
-        ret = pthread_setname_np(threadId, attr->name);
-        if (ret != 0) {
-            SOFTBUS_PRINT("[TRANS] TcpCreate setname fail\n");
-        }
     }
 
     return (ThreadId)threadId;
@@ -890,36 +917,20 @@ int StartSelectLoop(TcpSessionMgr *tsm)
 
 int CreateTcpSessionMgr(bool asServer, const char* localIp)
 {
-    if (g_sessionMgr != NULL || localIp == NULL) {
+    if (localIp == NULL) {
         return TRANS_FAILED;
     }
-    g_sessionMgr = malloc(sizeof(TcpSessionMgr));
-    if (g_sessionMgr == NULL) {
-        return TRANS_FAILED;
-    }
-    (void)memset_s(g_sessionMgr, sizeof(TcpSessionMgr), 0, sizeof(TcpSessionMgr));
-    g_sessionMgr->asServer = asServer;
-    g_sessionMgr->listenFd = -1;
-    g_sessionMgr->isSelectLoopRunning = false;
 
     if (InitTcpMgrLock() != 0 || GetTcpMgrLock() != 0) {
-        FreeSessionMgr();
         return TRANS_FAILED;
     }
 
-    for (int i = 0; i < MAX_SESSION_SUM_NUM; i++) {
-        g_sessionMgr->sessionMap_[i] = NULL;
-    }
-
-    for (int i = 0; i < MAX_SESSION_SERVER_NUM; i++) {
-        g_sessionMgr->serverListenerMap[i] = NULL;
-    }
-
-    if (ReleaseTcpMgrLock() != 0) {
+    int ret = InitGSessionMgr();
+    if (ReleaseTcpMgrLock() != 0 || ret != 0) {
         FreeSessionMgr();
         return TRANS_FAILED;
     }
-
+    g_sessionMgr->asServer = asServer;
     int listenFd = OpenTcpServer(localIp, DEFAULT_TRANS_PORT);
     if (listenFd < 0) {
         SOFTBUS_PRINT("[TRANS] CreateTcpSessionMgr OpenTcpServer fail\n");
@@ -950,17 +961,14 @@ int RemoveTcpSessionMgr(void)
     if (g_sessionMgr == NULL) {
         return TRANS_FAILED;
     }
+
+    CloseAllSession(g_sessionMgr);
     if (GetTcpMgrLock() != 0) {
         return TRANS_FAILED;
     }
 
-    CloseAllSession(g_sessionMgr);
     CloseFd(g_sessionMgr->listenFd);
     g_sessionMgr->listenFd = -1;
-    if (g_sessionMgr != NULL) {
-        free(g_sessionMgr);
-        g_sessionMgr = NULL;
-    }
 
     if (ReleaseTcpMgrLock() != 0) {
         return TRANS_FAILED;
@@ -970,7 +978,7 @@ int RemoveTcpSessionMgr(void)
 
 int CreateSessionServer(const char* moduleName, const char* sessionName, struct ISessionListener *listener)
 {
-    if (g_sessionMgr == NULL || moduleName == NULL || sessionName == NULL || listener == NULL) {
+    if (moduleName == NULL || sessionName == NULL || listener == NULL) {
         return TRANS_FAILED;
     }
 
@@ -1020,7 +1028,7 @@ static unsigned char *TransPackBytes(TcpSession *session, const unsigned char *s
         return NULL;
     }
 
-    int allLen = sendDataLen + TRANS_PACKET_HEAD_SIZE + OVERHEAD_LEN + SESSION_KEY_INDEX_SIZE;
+    int allLen = sendDataLen + TRANS_PACKET_HEAD_SIZE + OVERHEAD_LEN;
     if (allLen > RECIVED_BUFF_SIZE || allLen <= 0) {
         return NULL;
     }
@@ -1052,6 +1060,8 @@ static unsigned char *TransPackBytes(TcpSession *session, const unsigned char *s
     int dataLen = sendDataLen + OVERHEAD_LEN;
     ret += memcpy_s(buf + offset, allLen - offset, &dataLen, SIZE_OF_INT);
     offset += SIZE_OF_INT;
+
+    cipherKey.keybits = GCM_KEY_BITS_LEN_256;
     ret += memcpy_s(cipherKey.key, SESSION_KEY_LENGTH, session->sessionKey, SESSION_KEY_LENGTH);
     ret += memcpy_s(cipherKey.iv, IV_LEN, randomIv, IV_LEN);
     free(randomIv);
@@ -1067,11 +1077,11 @@ static unsigned char *TransPackBytes(TcpSession *session, const unsigned char *s
         return NULL;
     }
 
-    *bufLen = cipherLen + TRANS_PACKET_HEAD_SIZE + SESSION_KEY_INDEX_SIZE;
+    *bufLen = cipherLen + TRANS_PACKET_HEAD_SIZE;
     return buf;
 }
 
-int SendBytes(int sessionfd, const void *buf, unsigned int size)
+int SendBytes(int sessionfd, const unsigned char *buf, unsigned int size)
 {
     if (buf == NULL || sessionfd < 0 || size == 0 || size > SEND_BUFF_MAX_SIZE) {
         return TRANS_FAILED;
@@ -1087,7 +1097,7 @@ int SendBytes(int sessionfd, const void *buf, unsigned int size)
     }
 
     int cipherLen = 0;
-    char *cipherBuf = (char *)TransPackBytes(session, (unsigned char *)buf, size, &cipherLen);
+    char *cipherBuf = (char *)TransPackBytes(session, buf, size, &cipherLen);
     if (cipherBuf == NULL) {
         return TRANS_FAILED;
     }

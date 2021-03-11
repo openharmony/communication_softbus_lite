@@ -37,8 +37,6 @@ typedef struct {
     int busVersion;
     int routeType;
     bool isAccepted;
-    uid_t uid;
-    pid_t pid;
     List *seqNumList;
 } TcpSession;
 

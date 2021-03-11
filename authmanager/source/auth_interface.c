@@ -152,13 +152,8 @@ static void AuthGetProtocolParams(const struct session_identity *identity, int32
     struct hc_pin *hcPin, struct operation_parameter *para)
 {
     (void)operationCode;
-    SOFTBUS_PRINT("[AUTH] AuthGetProtocolParams operationCode = %d\n", operationCode);
-    if (identity == NULL || hcPin == NULL || para == NULL) {
-        return;
-    }
-
-    hcPin->length = strlen(AUTH_PIN_DEFAULT);
-    if (memcpy_s(hcPin->pin, sizeof(hcPin->pin), AUTH_PIN_DEFAULT, sizeof(AUTH_PIN_DEFAULT)) != EOK) {
+    (void)hcPin;
+    if (identity == NULL || para == NULL) {
         return;
     }
 

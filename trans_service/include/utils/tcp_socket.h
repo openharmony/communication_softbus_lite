@@ -16,6 +16,7 @@
 #ifndef TCP_SOCKET_H
 #define TCP_SOCKET_H
 
+#include <stdint.h>
 #include <sys/types.h>
 #include <sys/uio.h>
 

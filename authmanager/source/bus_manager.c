@@ -81,7 +81,6 @@ int StopBus(void)
     if (g_busStartFlag == 0) {
         return 0;
     }
-
     AuthMngDeInit();
     StopListener();
 

@@ -40,8 +40,6 @@ TcpSession *CreateTcpSession(void)
     tcpSession->busVersion = 0;
     tcpSession->routeType = 0;
     tcpSession->isAccepted = false;
-    tcpSession->uid = -1;
-    tcpSession->pid = -1;
     tcpSession->seqNumList = malloc(sizeof(List));
     if (tcpSession->seqNumList == NULL) {
         free(tcpSession);

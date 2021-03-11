@@ -14,9 +14,6 @@
  */
 
 #include "wifi_auth_manager.h"
-
-#include <stdlib.h>
-
 #include "aes_gcm.h"
 #include "auth_conn.h"
 #include "auth_conn_manager.h"

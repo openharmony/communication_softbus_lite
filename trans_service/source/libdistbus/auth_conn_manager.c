@@ -17,7 +17,7 @@
 
 #include <arpa/inet.h>
 #if defined(__LITEOS_M__) || defined(__LITEOS_RISCV__)
-#include <los_task.h>
+#include <cmsis_os.h>
 #include <lwip/sockets.h>
 #else
 #include <errno.h>
@@ -44,7 +44,7 @@ static int g_listenFd = -1;
 static int g_dataFd = -1;
 static int g_maxFd = -1;
 #if defined(__LITEOS_M__) || defined(__LITEOS_RISCV__)
-static unsigned int g_uwTskLoID;
+static osThreadId_t g_uwTskLoID;
 #endif
 
 static void RefreshMaxFd(int fd)
@@ -160,17 +160,17 @@ int StartListener(BaseListener *callback, const char *ip)
         return -DBE_BAD_PARAM;
     }
 
-    unsigned int ret;
-    TSK_INIT_PARAM_S serverTask;
+    osThreadAttr_t attr;
+    attr.name = "trans_auth_task";
+    attr.attr_bits = 0U;
+    attr.cb_mem = NULL;
+    attr.cb_size = 0U;
+    attr.stack_mem = NULL;
+    attr.stack_size = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
+    attr.priority = osPriorityNormal5; // LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO -> cmsis prio
 
-    serverTask.pfnTaskEntry = (TSK_ENTRY_FUNC)WaitProcess;
-    serverTask.uwStackSize  = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
-    serverTask.pcName = "trans_auth_task";
-    serverTask.usTaskPrio = LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO;
-    serverTask.uwResved   = LOS_TASK_STATUS_DETACHED;
-
-    ret = LOS_TaskCreate(&g_uwTskLoID, &serverTask);
-    if (ret != 0) {
+    g_uwTskLoID = osThreadNew((osThreadFunc_t)WaitProcess, NULL, &attr);
+    if (NULL == g_uwTskLoID) {
         SOFTBUS_PRINT("[TRANS] StartListener task create fail\n");
         return -1;
     }
@@ -204,9 +204,6 @@ ThreadId AuthCreate(Runnable run, const ThreadAttr *attr)
     int errCode = pthread_create(&threadId, &threadAttr, run, NULL);
     if (errCode != 0) {
         return NULL;
-    }
-    if (attr->name != NULL) {
-        (void)pthread_setname_np(threadId, attr->name);
     }
     return (ThreadId)threadId;
 }

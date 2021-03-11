@@ -291,9 +291,7 @@ int InitLocalDeviceInfo(void)
             return ERROR_FAIL;
         }
     }
-#if defined(__LITEOS_A__) || defined(__LINUX__)
-    CoapGetIp(g_deviceInfo->deviceIp, NSTACKX_MAX_IP_STRING_LEN, 1);
-#endif
+
     g_deviceInfo->devicePort = -1;
     g_deviceInfo->isAccountTrusted = 1;
 
