@@ -1,14 +1,14 @@
-# Intelligent Soft Bus<a name="EN-US_TOPIC_0000001051344287"></a>
+# Intelligent Soft Bus<a name="EN-US_TOPIC_0000001131600815"></a>
 
--   [Overview](#section11660541593)
+-   [Introduction](#section11660541593)
 -   [Directory Structure](#section1464106163817)
 -   [Constraints](#section1718733212019)
--   [Usage](#section167037358130)
+-   [Usage Guidelines](#section167037358130)
 -   [Repositories Involved](#section4499619123117)
 
-## Overview<a name="section11660541593"></a>
+## Introduction<a name="section11660541593"></a>
 
-The use of different communication modes \(such as USB, WLAN, and Bluetooth\) varies greatly and is complex. In addition, the convergence, sharing, and conflicts between communication links cannot be resolved, and communication security is difficult to guarantee. The distributed communication subsystem manages unified distributed communication between near-field devices and provides device discovery and data transmission APIs that apply to all links. Currently, the following features are available:
+The use of different communication modes \(such as USB, WLAN, and Bluetooth\) varies greatly and is complex. In addition, the convergence, sharing, and conflicts between communication links cannot be resolved, and communication security is difficult to guarantee. The distributed virtual bus manages unified distributed communication between near-field devices and provides device discovery and data transmission APIs that apply to all links. Currently, the following features are available:
 
 -   Service publishing: After a service is published, peripheral devices can discover and use it.
 -   Data transmission: A session is established based on the service name and device ID to transmit data between services.
@@ -34,27 +34,25 @@ You can use APIs of the distributed communication subsystem to implement fast an
 
 **Operating system**: OpenHarmony
 
-## Usage<a name="section167037358130"></a>
+## Usage Guidelines<a name="section167037358130"></a>
 
 1.  **Device discovery**
 
-When using device discovery, ensure that the device to perform a discovery and the device to discover are in the same LAN and the devices can receive packets from each other.
+    When using device discovery, ensure that the device to perform a discovery and the device to discover are in the same LAN and the devices can receive packets from each other.
 
-a. After a device sends a discovery request, it uses Constrained Application Protocol \(CoAP\) to send a broadcast packet in the LAN.
+    a. After a device sends a discovery request, it uses Constrained Application Protocol \(CoAP\) to send a broadcast packet in the LAN.
 
-b. The discovered device uses the  **PublishService**  API to publish services. After receiving the broadcast packet, the device sends a CoAP unicast packet to the device that performs the discovery.
+    b. The device to discover uses the  **PublishService**  API to publish services. After receiving the broadcast packet, the device sends a CoAP unicast packet to the device that performs the discovery.
 
-c. After receiving the packet, the device that performs the discovery updates device information.
+    c. After receiving the packet, the device that performs the discovery updates device information.
 
-**2. Transmission**
+2.  **Transmission**
 
-The soft bus provides unified session-based transmission. Services can receive and send data or obtain basic attributes through  **sessionId**. Currently, services can determine whether to accept a received session based on the service requirements and session attributes. Currently, sessions cannot be enabled.
+The virtual bus provides unified session-based transmission. Services can receive and send data or obtain basic attributes through  **sessionId**. Currently, services can determine whether to accept a received session based on the service requirements and session attributes. Currently, sessions cannot be enabled.
 
 ## Repositories Involved<a name="section4499619123117"></a>
 
-communication\_softbus\_lite
+[Intelligent Soft Bus subsystem](https://gitee.com/openharmony/docs/blob/master/en/readme/intelligent-soft-bus.md)
 
-communication\_ipc\_lite
-
-communication\_wifi\_aware
+**communication\_softbus\_lite**
 
