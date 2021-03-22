@@ -56,3 +56,7 @@ The virtual bus provides unified session-based transmission. Services can receiv
 
 **communication\_softbus\_lite**
 
+[communication\_ipc\_lite](https://gitee.com/openharmony/communication_ipc_lite/blob/master/README.md)
+
+[communication\_wifi\_aware](https://gitee.com/openharmony/communication_wifi_aware/blob/master/README.md)
+
