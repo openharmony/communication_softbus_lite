@@ -223,12 +223,13 @@ static void CloseTransSession(int sessionId)
         SOFTBUS_PRINT("[TRANS] CloseTransSession GetSessionById fail\n");
         return;
     }
-    RemoveSession(g_sessionMgr, sessionId);
+
     SessionListenerMap *serverListener = GetSessionListenerByName(session->sessionName, strlen(session->sessionName));
     if (serverListener == NULL) {
         return;
     }
     serverListener->listener->onSessionClosed(sessionId);
+    RemoveSession(g_sessionMgr, sessionId);
 }
 
 static int RemoveExceptSessionFd(const TcpSessionMgr *tsm, fd_set *exceptfds)
@@ -412,7 +413,7 @@ static cJSON *TransFirstPkg2Json(const char *buffer, int bufferSize)
         return NULL;
     }
 
-    char *firstDataJson = (char *)malloc(dataLen);
+    char *firstDataJson = calloc(1, dataLen);
     if (firstDataJson == NULL) {
         return NULL;
     }
@@ -577,7 +578,6 @@ static void FreeSessionRecvMem(char* recvDataBuf, TcpSession* session)
     }
 
     CloseSession(session->fd);
-    session->fd = -1;
 }
 
 static int32_t TcpSessionRecv(TcpSession *session, const char* buf, uint32_t size, int timeout)
@@ -586,7 +586,7 @@ static int32_t TcpSessionRecv(TcpSession *session, const char* buf, uint32_t siz
         return TRANS_FAILED;
     }
 
-    char *recvDataBuf = (char *)malloc(size + OVERHEAD_LEN);
+    char *recvDataBuf = calloc(1, size + OVERHEAD_LEN);
     if (recvDataBuf == NULL) {
         return TRANS_FAILED;
     }
@@ -647,11 +647,10 @@ static bool OnProcessDataAvailable(TcpSession *session)
         bool isSuccess = HandleRequestMsg(session);
         if (!isSuccess) {
             CloseSession(session->fd);
-            session->fd = -1;
         }
         return isSuccess;
     } else {
-        unsigned char* buf = malloc(RECIVED_BUFF_SIZE);
+        unsigned char* buf = calloc(1, RECIVED_BUFF_SIZE);
         if (buf == NULL) {
             return false;
         }
@@ -768,7 +767,7 @@ static int CreateSessionServerInner(const char* moduleName, const char* sessionN
     }
 
     if (findIndex >= 0 && findIndex < MAX_SESSION_SERVER_NUM) {
-        g_sessionMgr->serverListenerMap[findIndex] = malloc(sizeof(SessionListenerMap));
+        g_sessionMgr->serverListenerMap[findIndex] = calloc(1, sizeof(SessionListenerMap));
         if (g_sessionMgr->serverListenerMap[findIndex] == NULL) {
             return TRANS_FAILED;
         }
