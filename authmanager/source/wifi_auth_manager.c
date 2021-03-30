@@ -386,13 +386,34 @@ static int GetKeyIndex(const char *in, unsigned int inOffset, unsigned int index
     return val;
 }
 
+static cJSON *DecryptPlainMessage(const char *data, int dataLen)
+{
+    unsigned int bufLen = dataLen + 1;
+    char *buf = malloc(bufLen);
+    if (buf == NULL) {
+        return NULL;
+    }
+    if (memset_s(buf, bufLen, 0, bufLen) != EOK) {
+        free(buf);
+        return NULL;
+    }
+    if (memcpy_s(buf, bufLen, data, dataLen) != EOK) {
+        free(buf);
+        return NULL;
+    }
+
+    cJSON *retJson = cJSON_Parse(buf);
+    free(buf);
+    return retJson; 
+}
+
 static cJSON *DecryptMessage(int module, const char *data, int dataLen)
 {
     if (data == NULL) {
         return NULL;
     }
     if (!ModuleUseCipherText(module)) {
-        return cJSON_Parse(data);
+        return DecryptPlainMessage(data, dataLen);
     }
 
     if (dataLen < MESSAGE_ENCRYPT_OVER_HEAD_LEN) {
