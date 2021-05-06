@@ -47,7 +47,7 @@ char *g_capabilityData = NULL;
 static int DoRegistService(int medium);
 static MutexId g_discoveryMutex = NULL;
 
-int GetDeviceType(const char *value)
+static int GetDevType(const char *value)
 {
     if (value == NULL) {
         return UNKOWN;
@@ -127,7 +127,7 @@ int SetCommonDeviceInfo(const struct CommonDeviceInfo *devInfo, unsigned int num
                 break;
             case COMM_DEVICE_KEY_DEVTYPE:
                 ret = ERROR_FAIL;
-                devType = GetDeviceType(devInfo[i].value);
+                devType = GetDevType(devInfo[i].value);
                 if (devType != UNKOWN) {
                     localDev->deviceType = devType;
                     ret = ERROR_SUCCESS;
