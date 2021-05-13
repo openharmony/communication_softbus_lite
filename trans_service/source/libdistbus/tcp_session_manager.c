@@ -52,7 +52,7 @@
 #define AUTH_PACKET_HEAD_SIZE 24
 #define TRANS_PACKET_HEAD_SIZE 16
 #define TRANS_SEQ_NUM_OFFSET 8
-#define RECIVED_BUFF_SIZE 1024
+#define RECIVED_BUFF_SIZE (4 * 1024)
 #define LISTEN_BACKLOG 4
 #define DEFAULT_SEQNUM 100
 #define DEFAULT_TV_SEC 10
@@ -549,25 +549,6 @@ static bool HandleRequestMsg(TcpSession *session)
     return true;
 }
 
-static SessionSeqNumNode* FindSessionSeqNumNode(const TcpSession* session, int seqNum)
-{
-    if (session == NULL) {
-        return NULL;
-    }
-    SessionSeqNumNode* node = NULL;
-    List* pos = NULL;
-    List* tmp = NULL;
-
-    LIST_FOR_EACH_SAFE(pos, tmp, session->seqNumList) {
-        node = (SessionSeqNumNode*)pos;
-        if (node->seqNum == seqNum) {
-            return node;
-        }
-    }
-
-    return NULL;
-}
-
 static void FreeSessionRecvMem(char* recvDataBuf, TcpSession* session)
 {
     if (recvDataBuf != NULL) {
@@ -603,18 +584,6 @@ static int32_t TcpSessionRecv(TcpSession *session, const char* buf, uint32_t siz
     ret += memcpy_s(cipherKey.key, SESSION_KEY_LENGTH, session->sessionKey, SESSION_KEY_LENGTH);
     ret += memcpy_s(cipherKey.iv, IV_LEN, recvDataBuf + TRANS_PACKET_HEAD_SIZE, IV_LEN);
     if (ret != 0) {
-        FreeSessionRecvMem(recvDataBuf, session);
-        return TRANS_FAILED;
-    }
-
-    if (memcmp(cipherKey.iv, &seq, SIZE_OF_INT) != 0) {
-        SOFTBUS_PRINT("[TRANS] seqNum is not contains in IV.\n");
-        FreeSessionRecvMem(recvDataBuf, session);
-        return TRANS_FAILED;
-    }
-
-    if (FindSessionSeqNumNode(session, seq) != NULL) {
-        SOFTBUS_PRINT("[TRANS] seqNum is used.\n");
         FreeSessionRecvMem(recvDataBuf, session);
         return TRANS_FAILED;
     }
@@ -834,7 +803,7 @@ int StartSelectLoop(TcpSessionMgr *tsm)
     attr.cb_mem = NULL;
     attr.cb_size = 0U;
     attr.stack_mem = NULL;
-    attr.stack_size = LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE;
+    attr.stack_size = (LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE * 2);
     attr.priority = osPriorityNormal5; // LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO -> cmsis prio
 
     sessionLoopTaskId = osThreadNew((osThreadFunc_t)SelectSessionLoop, (void *)tsm, &attr);
