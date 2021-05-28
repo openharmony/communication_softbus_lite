@@ -390,17 +390,8 @@ static cJSON *TransFirstPkg2Json(const char *buffer, int bufferSize)
         SOFTBUS_PRINT("[TRANS] bufferSize < AUTH_PACKET_HEAD_SIZE\n");
         return NULL;
     }
-    int offset = 0;
-    int headerIdentifier = GetIntFromBuf(buffer, offset);
-    if ((unsigned int)headerIdentifier != PKG_HEADER_IDENTIFIER) {
-        SOFTBUS_PRINT("[TRANS] TransFirstPkg2Json HEADER_IDENTIFIER invalid: %d\n", headerIdentifier);
-        return NULL;
-    }
-
-    offset += SIZE_OF_INT;
-    offset += SIZE_OF_INT;
-    offset += SIZE_OF_LONG_LONG;
-    offset += SIZE_OF_INT;
+	
+    int offset = AUTH_PACKET_HEAD_SIZE - sizeof(int);
     int dataLen = GetIntFromBuf(buffer, offset) - SESSION_KEY_INDEX_SIZE;
     if (dataLen <= 0 || dataLen > (RECIVED_BUFF_SIZE - AUTH_PACKET_HEAD_SIZE)) {
         return NULL;
@@ -433,7 +424,8 @@ static cJSON *TransFirstPkg2Json(const char *buffer, int bufferSize)
         free(firstDataJson);
         return NULL;
     }
-    cJSON *receiveObj = cJSON_ParseWithLength(firstDataJson, dataLen);
+
+    cJSON *receiveObj = cJSON_Parse(firstDataJson);
     free(firstDataJson);
     return receiveObj;
 }
@@ -506,43 +498,49 @@ static bool ResponseToClient(TcpSession *session)
 
 static bool HandleRequestMsg(TcpSession *session)
 {
-    int ret;
     char data[RECIVED_BUFF_SIZE] = { 0 };
-
-    int32_t size = TcpRecvData(session->fd, data, RECIVED_BUFF_SIZE, 0);
-    if (size <= AUTH_PACKET_HEAD_SIZE + SESSION_KEY_INDEX_SIZE) {
-        SOFTBUS_PRINT("[TRANS] HandleRequestMsg TcpRecvData fail\n");
+    int size = TcpRecvData(session->fd, data, AUTH_PACKET_HEAD_SIZE, 0);
+	if (size != AUTH_PACKET_HEAD_SIZE) {
+		return false;
+	}
+    int identifier = GetIntFromBuf(data, 0);
+    if ((unsigned int)identifier != PKG_HEADER_IDENTIFIER) {
         return false;
     }
-
-    cJSON *receiveObj = TransFirstPkg2Json(data, size);
+	int dataLen = GetIntFromBuf(data, AUTH_PACKET_HEAD_SIZE - sizeof(int));
+	if (dataLen + AUTH_PACKET_HEAD_SIZE >= RECIVED_BUFF_SIZE) {
+		return false;
+	}
+	int total = size;
+	int remain = dataLen;
+	while (remain > 0) {
+		size = TcpRecvData(session->fd, data + total, remain, 0);
+		remain -= size;
+		total += size;
+	}
+    cJSON *receiveObj = TransFirstPkg2Json(data, dataLen + AUTH_PACKET_HEAD_SIZE);
     if (receiveObj == NULL) {
         return false;
     }
-
-    ret = AssignValue2Session(session, receiveObj);
+    int ret = AssignValue2Session(session, receiveObj);
     cJSON_Delete(receiveObj);
     if (ret != true) {
         return false;
     }
-
     SessionListenerMap *sessionListener = GetSessionListenerByName(session->sessionName, strlen(session->sessionName));
     if (sessionListener == NULL) {
         return false;
     }
-
     if (!ResponseToClient(session)) {
         SOFTBUS_PRINT("[TRANS] HandleRequestMsg ResponseToClient fail\n");
         return false;
     }
-
     if (sessionListener->listener == NULL) {
         return false;
     }
     if (sessionListener->listener->onSessionOpened == NULL) {
         return false;
     }
-
     if (sessionListener->listener->onSessionOpened(session->fd) != 0) {
         return false;
     }
