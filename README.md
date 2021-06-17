@@ -52,7 +52,7 @@ The virtual bus provides unified session-based transmission. Services can receiv
 
 ## Repositories Involved<a name="section4499619123117"></a>
 
-[Intelligent Soft Bus subsystem](https://gitee.com/openharmony/docs/blob/master/en/readme/intelligent-soft-bus.md)
+[DSoftBus subsystem](https://gitee.com/openharmony/docs/blob/master/en/readme/dsoftbus.md)
 
 **communication\_softbus\_lite**
 
