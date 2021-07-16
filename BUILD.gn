@@ -28,7 +28,6 @@ if (ohos_kernel_type == "liteos_a" || ohos_kernel_type == "linux") {
       "//foundation/communication/softbus_lite/trans_service/include/utils",
       "//foundation/communication/softbus_lite/trans_service/source/libdistbus",
       "//foundation/communication/softbus_lite/trans_service/source/utils",
-      "//kernel/liteos_a/lib/libsec/include",
       "//foundation/communication/softbus_lite/interfaces/kits/transport",
       "//base/security/deviceauth/interfaces/innerkits/deviceauth_lite",
       "//third_party/mbedtls/include",

@@ -22,7 +22,6 @@ if (ohos_kernel_type == "liteos_m") {
       "source/libdistbus",
       "source/utils",
       "../authmanager/include",
-      "//kernel/liteos_a/lib/libsec/include",
       "//third_party/cJSON",
       "//foundation/communication/softbus_lite/discovery/discovery_service/include",
       "//foundation/communication/softbus_lite/os_adapter/include",
