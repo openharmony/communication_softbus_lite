@@ -390,7 +390,7 @@ static cJSON *TransFirstPkg2Json(const char *buffer, int bufferSize)
         SOFTBUS_PRINT("[TRANS] bufferSize < AUTH_PACKET_HEAD_SIZE\n");
         return NULL;
     }
-	
+    
     int offset = AUTH_PACKET_HEAD_SIZE - sizeof(int);
     int dataLen = GetIntFromBuf(buffer, offset) - SESSION_KEY_INDEX_SIZE;
     if (dataLen <= 0 || dataLen > (RECIVED_BUFF_SIZE - AUTH_PACKET_HEAD_SIZE)) {
@@ -500,24 +500,24 @@ static bool HandleRequestMsg(TcpSession *session)
 {
     char data[RECIVED_BUFF_SIZE] = { 0 };
     int size = TcpRecvData(session->fd, data, AUTH_PACKET_HEAD_SIZE, 0);
-	if (size != AUTH_PACKET_HEAD_SIZE) {
-		return false;
-	}
+    if (size != AUTH_PACKET_HEAD_SIZE) {
+        return false;
+    }
     int identifier = GetIntFromBuf(data, 0);
     if ((unsigned int)identifier != PKG_HEADER_IDENTIFIER) {
         return false;
     }
-	int dataLen = GetIntFromBuf(data, AUTH_PACKET_HEAD_SIZE - sizeof(int));
-	if (dataLen + AUTH_PACKET_HEAD_SIZE >= RECIVED_BUFF_SIZE) {
-		return false;
-	}
-	int total = size;
-	int remain = dataLen;
-	while (remain > 0) {
-		size = TcpRecvData(session->fd, data + total, remain, 0);
-		remain -= size;
-		total += size;
-	}
+    int dataLen = GetIntFromBuf(data, AUTH_PACKET_HEAD_SIZE - sizeof(int));
+    if (dataLen + AUTH_PACKET_HEAD_SIZE >= RECIVED_BUFF_SIZE) {
+        return false;
+    }
+    int total = size;
+    int remain = dataLen;
+    while (remain > 0) {
+        size = TcpRecvData(session->fd, data + total, remain, 0);
+        remain -= size;
+        total += size;
+    }
     cJSON *receiveObj = TransFirstPkg2Json(data, dataLen + AUTH_PACKET_HEAD_SIZE);
     if (receiveObj == NULL) {
         return false;
@@ -785,6 +785,7 @@ static int RemoveSessionServerInner(const char* moduleName, const char *sessionN
 #if defined(__LITEOS_M__) || defined(__LITEOS_RISCV__)
 int StartSelectLoop(TcpSessionMgr *tsm)
 {
+    #define DEFAULT_STACK_LEN 2
     if (tsm == NULL) {
         return TRANS_FAILED;
     }
@@ -801,7 +802,7 @@ int StartSelectLoop(TcpSessionMgr *tsm)
     attr.cb_mem = NULL;
     attr.cb_size = 0U;
     attr.stack_mem = NULL;
-    attr.stack_size = (LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE * 2);
+    attr.stack_size = (LOSCFG_BASE_CORE_TSK_DEFAULT_STACK_SIZE * DEFAULT_STACK_LEN);
     attr.priority = osPriorityNormal5; // LOSCFG_BASE_CORE_TSK_DEFAULT_PRIO -> cmsis prio
 
     sessionLoopTaskId = osThreadNew((osThreadFunc_t)SelectSessionLoop, (void *)tsm, &attr);
