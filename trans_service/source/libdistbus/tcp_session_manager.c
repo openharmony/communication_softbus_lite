@@ -515,6 +515,9 @@ static bool HandleRequestMsg(TcpSession *session)
     int remain = dataLen;
     while (remain > 0) {
         size = TcpRecvData(session->fd, data + total, remain, 0);
+        if (size > remain) {
+            return false;
+        }
         remain -= size;
         total += size;
     }
