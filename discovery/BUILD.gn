@@ -27,6 +27,7 @@ if (ohos_kernel_type == "liteos_m") {
       "//third_party/bounds_checking_function/include",
       "//base/startup/syspara_lite/interfaces/kits",
       "//base/security/deviceauth/interfaces/innerkits/deviceauth_lite",
+      "//base/security/huks/interfaces/innerkits/huks_lite",
       "//third_party/cJSON",
       "$ohos_third_party_dir/lwip_sack/include",
     ]

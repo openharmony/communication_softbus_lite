@@ -17,7 +17,8 @@
 #include "coap_discover.h"
 #include "discovery_error.h"
 #include "discovery_service.h"
-#include "hks_client.h"
+#include "hks_api.h"
+#include "hks_type.h"
 #include "nstackx.h"
 #include "os_adapter.h"
 #include "securec.h"
@@ -194,7 +195,7 @@ int GetDeviceIdFromFile(char *deviceId, unsigned int len)
 {
     int ret;
     unsigned char data[MAX_VALUE_SIZE] = {0};
-    struct hks_blob key = {HKS_BLOB_TYPE_KEY, data, MAX_VALUE_SIZE};
+    struct HksBlob key = {sizeof(data), data};
 
     if (deviceId == NULL) {
         return ERROR_FAIL;
@@ -205,7 +206,7 @@ int GetDeviceIdFromFile(char *deviceId, unsigned int len)
         return ERROR_SUCCESS;
     }
 
-    ret = hks_generate_random(&key);
+    ret = HksGenerateRandom(NULL, &key);
     if (ret != 0) {
         SOFTBUS_PRINT("[DISCOVERY] generate key fail\n");
         return ERROR_FAIL;

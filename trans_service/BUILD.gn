@@ -27,6 +27,7 @@ if (ohos_kernel_type == "liteos_m") {
       "//foundation/communication/softbus_lite/os_adapter/include",
       "//foundation/communication/softbus_lite/interfaces/kits/transport",
       "//third_party/bounds_checking_function/include",
+      "//base/security/huks/interfaces/innerkits/huks_lite",
       "$ohos_third_party_dir/lwip_sack/include",
       "$ohos_third_party_dir/mbedtls/include",
     ]
