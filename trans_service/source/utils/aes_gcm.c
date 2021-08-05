@@ -16,10 +16,10 @@
 
 #include <securec.h>
 
-#include "hks_client.h"
-#include "mbedtls/gcm.h"
-
 #include "data_bus_error.h"
+#include "hks_api.h"
+#include "hks_type.h"
+#include "mbedtls/gcm.h"
 #include "os_adapter.h"
 
 static mbedtls_gcm_context g_aesContext;
@@ -31,9 +31,9 @@ unsigned char* GenerateRandomIv(void)
         return NULL;
     }
 
-    struct hks_blob blob = {HKS_BLOB_TYPE_IV, randomIv, IV_LEN};
+    struct HksBlob blob = {sizeof(randomIv), randomIv};
 
-    int ret = hks_generate_random(&blob);
+    int ret = HksGenerateRandom(NULL, &blob);
     if (ret != 0) {
         SOFTBUS_PRINT("[TRANS] EncryptTransData hks_generate_random fail\n");
         free(randomIv);

@@ -31,7 +31,7 @@ if (ohos_kernel_type == "liteos_a" || ohos_kernel_type == "linux") {
       "//foundation/communication/softbus_lite/interfaces/kits/transport",
       "//base/security/deviceauth/interfaces/innerkits/deviceauth_lite",
       "//third_party/mbedtls/include",
-      "//base/security/deviceauth/frameworks/deviceauth_lite/source/huks_adapter/",
+      "//base/security/huks/interfaces/innerkits/huks_lite",
       "//base/security/permission/interfaces/kits/permission_lite",
     ]
 
@@ -81,6 +81,7 @@ if (ohos_kernel_type == "liteos_a" || ohos_kernel_type == "linux") {
     public_configs = [ ":softbus_lite_config" ]
     public_deps = [
       "//base/security/deviceauth/frameworks/deviceauth_lite/source:hichainsdk",
+      "//base/security/huks/interfaces/innerkits/huks_lite:huks_3.0_sdk",
       "//base/security/permission/services/permission_lite/pms_client:pms_client",
       "//build/lite/config/component/cJSON:cjson_shared",
       "//third_party/bounds_checking_function:libsec_shared",
