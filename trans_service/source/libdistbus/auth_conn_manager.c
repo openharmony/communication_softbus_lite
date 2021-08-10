@@ -205,6 +205,7 @@ ThreadId AuthCreate(Runnable run, const ThreadAttr *attr)
     if (errCode != 0) {
         return NULL;
     }
+    pthread_join(threadId, NULL);
     return (ThreadId)threadId;
 }
 
