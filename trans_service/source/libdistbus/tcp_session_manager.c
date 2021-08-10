@@ -894,6 +894,7 @@ ThreadId TcpCreate(Runnable run, void *argv, const ThreadAttr *attr)
         return NULL;
     }
 
+    pthread_join(threadId, NULL);
     return (ThreadId)threadId;
 }
 
