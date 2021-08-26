@@ -31,7 +31,7 @@ unsigned char* GenerateRandomIv(void)
         return NULL;
     }
 
-    struct HksBlob blob = {sizeof(randomIv), randomIv};
+    struct HksBlob blob = {IV_LEN, randomIv};
 
     int ret = HksGenerateRandom(NULL, &blob);
     if (ret != 0) {
