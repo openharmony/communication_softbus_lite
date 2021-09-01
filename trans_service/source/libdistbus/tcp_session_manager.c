@@ -515,6 +515,10 @@ static bool HandleRequestMsg(TcpSession *session)
     int remain = dataLen;
     while (remain > 0) {
         size = TcpRecvData(session->fd, data + total, remain, 0);
+        if (size < 0) {
+            SOFTBUS_PRINT("[TRANS] TcpRecvData fail\n");
+            return false;
+        }
         if (size >= remain) {
             break;
         }
