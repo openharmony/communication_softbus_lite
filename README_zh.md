@@ -1,3 +1,6 @@
+# 公告<a name="ZH-CN_TOPIC_0000001131600815"></a>
+因OpenHarmony部件设计规范化需求，2022.1月起communication_softbus_lite仓更名为communication_softbus，本仓库归档不再维护。
+请前往[communication_softbus](https://gitee.com/openharmony/communication_dsoftbus/blob/master/README_zh.md)仓库，了解最新代码信息。
 # 介绍<a name="ZH-CN_TOPIC_0000001131600815"></a>
 
 -   [简介](#section11660541593)
